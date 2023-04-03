@@ -3,12 +3,11 @@
     "express": "^4.18.2",
     "nedb-promises": "^6.2.1",
     "nodemon": "^2.0.22",
-    "uuid": "^9.0.0"
+    "uuid-random": "^1.3.2"
   },
   "name": "airbean-api-assignment-curly-masters",
   "version": "1.0.0",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon index.js"

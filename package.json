@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "express": "^4.18.2",
+    "nedb-promises": "^6.2.1",
+    "nodemon": "^2.0.22",
+    "uuid": "^9.0.0"
+  },
+  "name": "airbean-api-assignment-curly-masters",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Feistybeard/airbean-api-assignment-curly-masters.git"
+  },
+  "keywords": [],
+  "author": "Curly Masters",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Feistybeard/airbean-api-assignment-curly-masters/issues"
+  },
+  "homepage": "https://github.com/Feistybeard/airbean-api-assignment-curly-masters#readme",
+  "description": ""
+}

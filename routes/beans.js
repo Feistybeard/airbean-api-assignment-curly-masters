@@ -1,7 +1,11 @@
 const { Router } = require("express");
 const router = Router();
 const uuid = require("uuid-random");
+const coffeeMenuJson = require("../menu.json");
 
-console.log("beans.js");
+const menu = coffeeMenuJson.menu;
+router.get("/", (req, res) => {
+  res.json({ success: true, menu });
+});
 
 module.exports = router;

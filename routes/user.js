@@ -18,19 +18,20 @@ db.insert(user, (err, newDoc) => {
   }
 });
 
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   const { username, password } = req.body;
-  db.find({ username, password }, (err, users) => {
-    if (err) {
-      console.error(err);
-      res.status(500).send("An error occurred");
-    } else if (users.length === 0) {
+  try {
+    const users = await db.find({ username, password });
+    if (users.length === 0) {
       res.status(401).send("Invalid username or password");
     } else {
       const user = users[0];
       res.send(`Welcome ${user.username}`);
     }
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("An error occurred");
+  }
 });
 
 module.exports = router;

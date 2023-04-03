@@ -5,7 +5,7 @@ const Datastore = require("nedb");
 
 const db = new Datastore({ filename: "orders.db", autoload: true });
 
-router.post("/order", (req, res) => {
+router.post("/order", async (req, res) => {
   const { name, price } = req.body;
   const order = {
     id: uuid(),
@@ -13,25 +13,39 @@ router.post("/order", (req, res) => {
     price,
     date: new Date(),
   };
-  db.insert(order, (err, newOrder) => {
-    if (err) {
-      console.error(err);
-      res.status(500).send("An error occurred");
-    } else {
-      res.send(`Order ${newOrder.id} created`);
-    }
-  });
+  try {
+    const newOrder = await new Promise((resolve, reject) => {
+      db.insert(order, (err, newDoc) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(newDoc);
+        }
+      });
+    });
+    res.send(`Order ${newOrder.id} created`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("An error occurred");
+  }
 });
 
-router.get("/orders", (req, res) => {
-  db.find({}, (err, orders) => {
-    if (err) {
-      console.error(err);
-      res.status(500).send("An error occurred");
-    } else {
-      res.send(orders);
-    }
-  });
+router.get("/orders", async (req, res) => {
+  try {
+    const orders = await new Promise((resolve, reject) => {
+      db.find({}, (err, docs) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(docs);
+        }
+      });
+    });
+    res.send(orders);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("An error occurred");
+  }
 });
 
 module.exports = router;

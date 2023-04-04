@@ -2,6 +2,7 @@ const { Router } = require("express");
 const router = Router();
 const uuid = require("uuid-random");
 const Datastore = require("nedb-promises");
+const session = require("express-session");
 
 const db = new Datastore({ filename: "users.db", autoload: true });
 
@@ -59,6 +60,7 @@ router.post("/login", async (req, res) => {
       res.status(401).send("Invalid username or password");
     } else {
       const user = users[0];
+      req.session.user = user;
       res.send(`Welcome ${user.username}`);
     }
   } catch (err) {

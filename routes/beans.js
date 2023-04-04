@@ -3,6 +3,12 @@ const router = Router();
 const uuid = require("uuid-random");
 const Datastore = require("nedb");
 
+const coffeeMenuJson = require("../menu.json");
+
+const menu = coffeeMenuJson.menu;
+router.get("/", (req, res) => {
+  res.json({ success: true, menu });
+
 const db = new Datastore({ filename: "orders.db", autoload: true });
 
 router.post("/order", async (req, res) => {

@@ -1,15 +1,32 @@
 const { Router } = require("express");
 const router = Router();
 const uuid = require("uuid-random");
-const Datastore = require("nedb");
+const Datastore = require("nedb-promises");
+const db = new Datastore({ filename: "orders.db", autoload: true });
+
+// const order = {
+//   orderId: "123",
+//   eta: 10,
+// };
+
+// db.insert(order);
+
+router.get("/order/status/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const getOrder = await db.findOne({ orderId: id });
+  if (getOrder) {
+    res.json({ eta: getOrder.eta });
+  } else {
+    res
+      .status(200)
+      .json({ success: false, message: "Ingen beställning funnen" });
 
 const coffeeMenuJson = require("../menu.json");
 
 const menu = coffeeMenuJson.menu;
 router.get("/", (req, res) => {
   res.json({ success: true, menu });
-
-const db = new Datastore({ filename: "orders.db", autoload: true });
 
 router.post("/order", async (req, res) => {
   const { name, price } = req.body;

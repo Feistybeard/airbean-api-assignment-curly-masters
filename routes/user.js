@@ -51,4 +51,20 @@ router.get("/signup", (req, res) => {
   res.status(200).json({ message: "Vad gör du här?" });
 });
 
+router.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    const users = await db.find({ username, password });
+    if (users.length === 0) {
+      res.status(401).send("Invalid username or password");
+    } else {
+      const user = users[0];
+      res.send(`Welcome ${user.username}`);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("An error occurred");
+  }
+});
+
 module.exports = router;

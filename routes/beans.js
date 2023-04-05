@@ -1,20 +1,12 @@
 const { Router } = require("express");
 const router = Router();
 const uuid = require("uuid-random");
-const Datastore = require("nedb-promises");
-const db = new Datastore({ filename: "orders.db", autoload: true });
-
-// const order = {
-//   orderId: "123",
-//   eta: 10,
-// };
-
-// db.insert(order);
+const db = require("../middleware/index");
 
 router.get("/order/status/:id", async (req, res) => {
   const { id } = req.params;
 
-  const getOrder = await db.findOne({ _id: id });
+  const getOrder = await db.orders.findOne({ _id: id });
   if (getOrder) {
     res.json({ eta: getOrder.eta });
   } else {
@@ -70,52 +62,29 @@ router.post("/order", async (req, res) => {
   if (checkedOrder.length > 0) {
     return res.status(400).json({ errors: checkedOrder });
   } else {
+    // show only the month, day, and year
+    // let orderDate = new Date("2020-01-01");
+
     let order2 = {};
     if (req.session.user === undefined) {
       order2 = {
         belongsTo: uuid(),
-        _id: uuid(),
+        orderNr: uuid(),
+        orderDate: new Date(2020, 01, 01),
         ...order,
       };
     } else {
       order2 = {
         belongsTo: req.session.user._id,
-        _id: uuid(),
+        orderNr: uuid(),
+        orderDate: new Date(2020, 01, 01),
         ...order,
       };
     }
-    const newOrder = await db.insert(order2);
+    const newOrder = await db.orders.insert(order2);
     order2 = {};
     return res.status(200).json({ success: true });
   }
-
-  // const newOrder2 = await ((resolve, reject) => {
-  //   db.insert(order2, (err, newOrder) => {
-  //     if (err) {
-  //       reject(err);
-  //     } else {
-  //       resolve(newOrder);
-  //     }
-  //   });
-  // });
-  // resolve.send(`Order ${newOrder2._id} created`);
-
-  // try {
-  //   const newOrder = await new Promise((resolve, reject) => {
-  //     db.insert(order2, (err, newOrder) => {
-  //       if (err) {
-  //         reject(err);
-  //       } else {
-  //         resolve(newOrder);
-  //       }
-  //     });
-  //   });
-  //   resolve.send(`Order ${newOrder._id} created`);
-  // } catch (err) {
-  //   console.log("test");
-  //   console.error(err);
-  //   resolve.status(500).send("An error occurred");
-  // }
 });
 
 router.get("/orders", async (req, res) => {
@@ -132,7 +101,7 @@ router.get("/orders", async (req, res) => {
     res.send(orders);
   } catch (err) {
     console.error(err);
-    res.status(500).send("An error occurred");
+    res.status(500).send("Ett fel inträffade");
   }
 });
 

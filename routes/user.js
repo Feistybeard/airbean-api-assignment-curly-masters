@@ -2,51 +2,28 @@ const { Router } = require("express");
 const router = Router();
 const uuid = require("uuid-random");
 const db = require("../utils/db");
+const middleWare = require("../middleware/index");
 
-router.post("/signup", async (req, res) => {
+router.post("/signup", middleWare.isValidBody, async (req, res) => {
   const { username, password } = req.body;
 
-  if (username === undefined || password === undefined) {
-    return res.status(400).json({ message: "Ett fel uppstod, försök igen!" });
-  }
+  const user = {
+    _id: uuid(),
+    username,
+    password,
+  };
 
-  let errors = [];
-  if (!username || !password) {
-    errors.push({ message: "Fyll i alla fält" });
-  }
-  if (username.length < 3) {
-    errors.push({ message: "Användarnamnet måste vara minst 3 tecken" });
-  }
-  if (password.length < 6) {
-    errors.push({ message: "Lösenordet måste vara minst 6 tecken" });
-  }
-  if (errors.length > 0) {
-    return res.status(400).json({ errors });
+  const userExists = await db.users.findOne({ username: user.username });
+  if (userExists) {
+    return res.status(400).json({ message: "Användarnamnet används redan!" });
   } else {
-    const user = {
-      _id: uuid(),
-      username,
-      password,
-    };
+    const newUser = await db.users.insert(user);
 
-    const userExists = await db.users.findOne({ username: user.username });
-    if (userExists) {
-      return res.status(400).json({ message: "Användarnamnet används redan!" });
-    } else {
-      const newUser = await db.users.insert(user);
-
-      if (!newUser || newUser === undefined) {
-        return res
-          .status(500)
-          .json({ message: "Ett fel uppstod, försök igen!" });
-      }
-      return res.status(200).json({ success: true });
+    if (!newUser || newUser === undefined) {
+      return res.status(500).json({ message: "Ett fel uppstod, försök igen!" });
     }
+    return res.status(200).json({ success: true });
   }
-});
-
-router.get("/signup", (req, res) => {
-  res.status(200).json({ message: "Vad gör du här?" });
 });
 
 router.post("/login", async (req, res) => {
@@ -58,7 +35,7 @@ router.post("/login", async (req, res) => {
     } else {
       const user = users[0];
       req.session.user = user;
-      res.send(`Welcome ${user.username}`);
+      res.status(200).json({ success: true });
     }
   } catch (err) {
     console.error(err);
@@ -81,7 +58,7 @@ router.get("/history", async (req, res) => {
       });
     }
 
-    let orderHistory = [];
+    const orderHistory = [];
     for (let i = 0; i < orders.length; i++) {
       const orderTotalPrice = orders[i].details.order.reduce(
         (acc, item) => acc + item.price,
@@ -96,7 +73,7 @@ router.get("/history", async (req, res) => {
       orderHistory.push(order);
     }
 
-    return res.status(200).json({ sucess: true, orderHistory });
+    return res.status(200).json({ success: true, orderHistory });
   }
 });
 

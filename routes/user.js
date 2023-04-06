@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const router = Router();
 const uuid = require("uuid-random");
-const db = require("../middleware/index");
+const db = require("../utils/db");
 
 router.post("/signup", async (req, res) => {
   const { username, password } = req.body;
@@ -28,8 +28,8 @@ router.post("/signup", async (req, res) => {
       username,
       password,
     };
-    const userExists = await db.users.findOne({ username: user.username });
 
+    const userExists = await db.users.findOne({ username: user.username });
     if (userExists) {
       return res.status(400).json({ message: "Användarnamnet används redan!" });
     } else {
@@ -80,7 +80,23 @@ router.get("/history", async (req, res) => {
         message: "Du har inga tidigare beställningar!",
       });
     }
-    return res.status(200).json({ sucess: true, orders });
+
+    let orderHistory = [];
+    for (let i = 0; i < orders.length; i++) {
+      const orderTotalPrice = orders[i].details.order.reduce(
+        (acc, item) => acc + item.price,
+        0
+      );
+
+      const order = {
+        total: orderTotalPrice,
+        orderNr: orders[i].orderNr,
+        orderDate: orders[i].orderDate,
+      };
+      orderHistory.push(order);
+    }
+
+    return res.status(200).json({ sucess: true, orderHistory });
   }
 });
 

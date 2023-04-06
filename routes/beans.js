@@ -1,7 +1,9 @@
 const { Router } = require("express");
 const router = Router();
 const uuid = require("uuid-random");
-const db = require("../middleware/index");
+const db = require("../utils/db");
+const middleWare = require("../middleware/index");
+const coffeeMenuJson = require("../menu.json");
 
 router.get("/order/status/:id", async (req, res) => {
   const { id } = req.params;
@@ -16,75 +18,37 @@ router.get("/order/status/:id", async (req, res) => {
   }
 });
 
-const coffeeMenuJson = require("../menu.json");
-
-const menu = coffeeMenuJson.menu;
-router.get("/", (req, res) => {
+router.get("/", middleWare.testing, function (req, res) {
+  const menu = coffeeMenuJson.menu;
   res.json({ success: true, menu });
 });
 
-router.post("/order", async (req, res) => {
+router.post("/order", middleWare.isValidProducts, async function (req, res) {
   const { ...order } = req.body;
 
   if (order === undefined) {
     return res.status(400).json({ message: "Ett fel uppstod, försök igen!" });
   }
 
-  function checkItems(order) {
-    let foundItems = 0;
-    let errors = [];
-    for (let i = 0; i < order.details.order.length; i++) {
-      for (let j = 0; j < menu.length; j++) {
-        if (order.details.order[i].name !== menu[j].title) {
-        } else {
-          if (order.details.order[i].price !== menu[j].price) {
-            errors.push({ message: "Fuska inte med priserna!" });
-            return errors;
-          } else {
-            foundItems++;
-          }
-        }
-      }
-    }
-    if (foundItems === order.details.order.length) {
-      return errors;
-    } else {
-      errors.push({
-        message:
-          "Måste vara en av följande produkter: Bryggkaffe, Caffè Doppio, Cappuccino, Latte Macchiato, Kaffe Latte, Cortado",
-      });
-      return errors;
-    }
-  }
-
-  const checkedOrder = checkItems(order);
-
-  if (checkedOrder.length > 0) {
-    return res.status(400).json({ errors: checkedOrder });
+  let orderToInsert = {};
+  if (req.session.user === undefined) {
+    orderToInsert = {
+      belongsTo: uuid(),
+      orderNr: uuid(),
+      orderDate: new Date().toLocaleDateString("sv-SE"),
+      ...order,
+    };
   } else {
-    // show only the month, day, and year
-    // let orderDate = new Date("2020-01-01");
-
-    let order2 = {};
-    if (req.session.user === undefined) {
-      order2 = {
-        belongsTo: uuid(),
-        orderNr: uuid(),
-        orderDate: new Date(2020, 01, 01),
-        ...order,
-      };
-    } else {
-      order2 = {
-        belongsTo: req.session.user._id,
-        orderNr: uuid(),
-        orderDate: new Date(2020, 01, 01),
-        ...order,
-      };
-    }
-    const newOrder = await db.orders.insert(order2);
-    order2 = {};
-    return res.status(200).json({ success: true });
+    orderToInsert = {
+      belongsTo: req.session.user._id,
+      orderNr: uuid(),
+      orderDate: new Date().toLocaleDateString("sv-SE"),
+      ...order,
+    };
   }
+  const newOrder = await db.orders.insert(orderToInsert);
+  orderToInsert = {};
+  return res.status(200).json({ success: true });
 });
 
 router.get("/orders", async (req, res) => {

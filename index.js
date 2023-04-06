@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8000;
 const session = require("express-session");
+// const checkItems = require("./middleware/index");
 
 const beansRouter = require("./routes/beans");
 const userRouter = require("./routes/user");

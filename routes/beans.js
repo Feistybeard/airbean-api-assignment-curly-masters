@@ -5,20 +5,7 @@ const db = require("../utils/db");
 const middleWare = require("../middleware/index");
 const coffeeMenuJson = require("../menu.json");
 
-router.get("/order/status/:id", async (req, res) => {
-  const { id } = req.params;
-
-  const getOrder = await db.orders.findOne({ _id: id });
-  if (getOrder) {
-    res.json({ eta: getOrder.eta });
-  } else {
-    res
-      .status(200)
-      .json({ success: false, message: "Ingen beställning funnen" });
-  }
-});
-
-router.get("/", middleWare.testing, function (req, res) {
+router.get("/", (req, res) => {
   const menu = coffeeMenuJson.menu;
   res.json({ success: true, menu });
 });
@@ -31,11 +18,13 @@ router.post("/order", middleWare.isValidProducts, async function (req, res) {
   }
 
   let orderToInsert = {};
+  const eta = Math.floor(Math.random() * 20 + 10);
   if (req.session.user === undefined) {
     orderToInsert = {
       belongsTo: uuid(),
       orderNr: uuid(),
       orderDate: new Date().toLocaleDateString("sv-SE"),
+      eta,
       ...order,
     };
   } else {
@@ -43,6 +32,7 @@ router.post("/order", middleWare.isValidProducts, async function (req, res) {
       belongsTo: req.session.user._id,
       orderNr: uuid(),
       orderDate: new Date().toLocaleDateString("sv-SE"),
+      eta,
       ...order,
     };
   }
@@ -66,6 +56,19 @@ router.get("/orders", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send("Ett fel inträffade");
+  }
+});
+
+router.get("/order/status/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const getOrder = await db.orders.findOne({ _id: id });
+  if (getOrder) {
+    res.json({ eta: getOrder.eta });
+  } else {
+    res
+      .status(200)
+      .json({ success: false, message: "Ingen beställning funnen" });
   }
 });
 

@@ -20,9 +20,28 @@ function isValidProducts(req, res, next) {
   next();
 }
 
-function testing(req, res, next) {
-  console.log("test");
-  next();
+function isValidBody(req, res, next) {
+  const { username, password } = req.body;
+
+  if (username === undefined || password === undefined) {
+    return res.status(400).json({ message: "Ett fel uppstod, försök igen!" });
+  }
+
+  let errors = [];
+  if (!username || !password) {
+    errors.push({ message: "Fyll i alla fält" });
+  }
+  if (username.length < 3) {
+    errors.push({ message: "Användarnamnet måste vara minst 3 tecken" });
+  }
+  if (password.length < 6) {
+    errors.push({ message: "Lösenordet måste vara minst 6 tecken" });
+  }
+  if (errors.length > 0) {
+    return res.status(400).json({ errors });
+  } else {
+    next();
+  }
 }
 
-module.exports = { isValidProducts, testing };
+module.exports = { isValidProducts, isValidBody };
